@@ -15,7 +15,11 @@ class ResumableBaseWidget(FileInput):
     clear_checkbox_label = ugettext_lazy('Clear')
 
     def render(self, name, value, attrs=None, **kwargs):
-        persistent_storage = ResumableStorage().get_persistent_storage()
+        content_type = ContentType.objects.get_for_model(self.attrs['model'])
+        model_upload_field = content_type.model_class()._meta.get_field(self.attrs['field_name'])
+
+        persistent_storage = ResumableStorage(persistent_storage=model_upload_field.storage).get_persistent_storage()
+
         if value:
             if isinstance(value, FieldFile):
                 value_name = value.name
@@ -31,8 +35,6 @@ class ResumableBaseWidget(FileInput):
         chunk_size = getattr(settings, 'ADMIN_RESUMABLE_CHUNKSIZE', "1*1024*1024")
         show_thumb = getattr(settings, 'ADMIN_RESUMABLE_SHOW_THUMB', False)
 
-        content_type_id = ContentType.objects.get_for_model(self.attrs['model']).id
-
         context = {
             'name': name,
             'value': value,
@@ -40,7 +42,7 @@ class ResumableBaseWidget(FileInput):
             'chunk_size': chunk_size,
             'show_thumb': show_thumb,
             'field_name': self.attrs['field_name'],
-            'content_type_id': content_type_id,
+            'content_type_id': content_type.id,
             'file_url': file_url,
             'file_name': file_name,
         }
