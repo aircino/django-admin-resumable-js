@@ -27,7 +27,7 @@ class ResumableFile(object):
 
     @cached_property
     def resumable_storage(self):
-        return ResumableStorage()
+        return ResumableStorage(persistent_storage=self.field.storage)
 
     @cached_property
     def persistent_storage(self):
@@ -35,7 +35,7 @@ class ResumableFile(object):
 
     @cached_property
     def chunk_storage(self):
-        return ResumableStorage().get_chunk_storage()
+        return self.resumable_storage.get_chunk_storage()
 
     @property
     def storage_filename(self):

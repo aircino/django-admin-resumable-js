@@ -9,7 +9,10 @@ from django.utils.encoding import force_text, force_str
 
 class ResumableStorage(object):
 
-    def __init__(self):
+    def __init__(self, persistent_storage=None, chunk_storage=None):
+        self.persistent_storage = persistent_storage
+        self.chunk_storage = chunk_storage
+
         self.persistent_storage_class_name = getattr(settings, 'ADMIN_RESUMABLE_STORAGE', None) or \
                                         getattr(settings, 'DEFAULT_FILE_STORAGE',
                                                 'django.core.files.storage.FileSystemStorage')
@@ -28,7 +31,7 @@ class ResumableStorage(object):
         for saving merged version in persistent storage.
         """
         storage_class = get_storage_class(self.chunk_storage_class_name)
-        return storage_class(*args, **kwargs)
+        return self.chunk_storage or storage_class(*args, **kwargs)
 
     def get_persistent_storage(self, *args, **kwargs):
         """
@@ -38,7 +41,7 @@ class ResumableStorage(object):
         Defaults to django.core.files.storage.FileSystemStorage.
         """
         storage_class = get_storage_class(self.persistent_storage_class_name)
-        return storage_class(*args, **kwargs)
+        return self.persistent_storage or storage_class(*args, **kwargs)
 
     def full_filename(self, filename, upload_to):
         dirname = force_text(datetime.datetime.now().strftime(force_str(upload_to)))
